@@ -1,0 +1,64 @@
+{
+  "users": [
+    {
+      "id": "mock-user-id",
+      "name": "Rishabh",
+      "email": "rkp16feb2006@gmail.com",
+      "role": "admin",
+      "created_at": "2026-04-21T00:00:00Z"
+    }
+  ],
+  "posts": [
+    {
+      "id": "1",
+      "title": "Welcome to BlogVerse!",
+      "body": "This is your first blog post. You can create more from the dashboard. Everything is currently running on a local mock database for easy testing!",
+      "image_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=1000",
+      "author_id": "mock-user-id",
+      "summary": "Welcome to your new blogging platform! This post introduces you to the features of BlogVerse, now running locally for your convenience.",
+      "created_at": "2026-04-21T10:00:00Z",
+      "updated_at": "2026-04-21T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "title": "The Boys: A Gritty Take on Superheroes",
+      "body": "The Boys is a satirical superhero television series developed by Eric Kripke for Amazon Prime Video. Based on the comic book of the same name, it follows the eponymous team of vigilantes as they combat superpowered individuals who abuse their abilities. The show explores themes of corporate greed, celebrity culture, and the dark side of heroism. With its intense action, dark humor, and complex characters like Homelander and Billy Butcher, it has become one of the most popular shows on streaming platforms.",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/68/The_Boys_TV_series_logo.svg",
+      "author_id": "mock-user-id",
+      "summary": "A deep dive into 'The Boys', the hit series that deconstructs the superhero genre with gritty realism, satirical humor, and unforgettable characters.",
+      "created_at": "2026-04-21T11:00:00Z",
+      "updated_at": "2026-04-21T11:00:00Z"
+    },
+    {
+      "id": "3",
+      "title": "Farzi: The Art of the Con",
+      "body": "Farzi is an Indian black comedy crime thriller series created by Raj & DK. Starring Shahid Kapoor, Vijay Sethupathi, and Kay Kay Menon, it tells the story of an artist who gets pulled into the murky world of counterfeiting. The series is praised for its sharp writing, brilliant performances, and realistic portrayal of the cat-and-mouse game between criminals and law enforcement. It's a high-stakes drama that keeps viewers on the edge of their seats from start to finish.",
+      "image_url": "https://m.media-amazon.com/images/M/MV5BNDY2OWMxNzgtZGQ4Ny00ODI3LTk3MTAtYjM4N2U4ZGI3ZGY1XkEyXkFqcGc@._V1_.jpg",
+      "author_id": "mock-user-id",
+      "summary": "Exploring the world of 'Farzi', a masterful Indian crime thriller that combines artistic precision with the high-stakes world of counterfeiting.",
+      "created_at": "2026-04-21T12:00:00Z",
+      "updated_at": "2026-04-21T12:00:00Z"
+    },
+    {
+      "id": "4",
+      "title": "Harry Potter: A Magical Journey",
+      "body": "Harry Potter is a series of seven fantasy novels written by British author J. K. Rowling. The novels chronicle the lives of a young wizard, Harry Potter, and his friends Hermione Granger and Ron Weasley, all of whom are students at Hogwarts School of Witchcraft and Wizardry. The main story arc concerns Harry's struggle against Lord Voldemort, a dark wizard who intends to become immortal, overthrow the wizard governing body known as the Ministry of Magic and subjugate all wizards and Muggles. It's a timeless tale of friendship, courage, and the battle between good and evil.",
+      "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlRpf2oKiOXnxlV3Sw_LTIuPWQlsq3QfaqxQ&s",
+      "author_id": "mock-user-id",
+      "summary": "A tribute to the 'Harry Potter' series, the global phenomenon that defined a generation and brought magic to life through its rich world-building and emotional depth.",
+      "created_at": "2026-04-21T13:00:00Z",
+      "updated_at": "2026-04-21T13:00:00Z"
+    },
+    {
+      "id": "5",
+      "title": "Dhurandhar: Part-1",
+      "body": "Ranveer Singh is back with a bang in 'Dhurandhar', an high-octane action thriller that has just taken the box office by storm. Directed by a visionary filmmaker, the movie showcases Ranveer in a never-before-seen avatar, blending raw power with his signature charismatic performance. The film follows a fearless protagonist on a mission of vengeance and justice, featuring state-of-the-art stunts and a gripping narrative. Fans and critics alike are hailing it as one of Ranveer's career-best performances, solidifying his status as the ultimate powerhouse of Bollywood.",
+      "image_url": "https://lh5.googleusercontent.com/proxy/a3gv3hk2Qv1u74leTwjOdbyv4MudbbfGlx21FH4VpoSCgN3Y8GZ9P8To1tQXDmDScqqh2R9PMMC_qwgKCFuU_GUFG8HcD4xohFEz4_4tHOa6EA",
+      "author_id": "mock-user-id",
+      "summary": "Ranveer Singh delivers a powerhouse performance in the newly released action epic 'Dhurandhar'. A must-watch cinematic experience that redefined Bollywood action.",
+      "created_at": "2026-04-21T14:00:00Z",
+      "updated_at": "2026-04-21T17:00:00Z"
+    }
+  ],
+  "comments": []
+}

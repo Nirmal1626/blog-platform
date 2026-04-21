@@ -1,66 +1,108 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { Suspense } from 'react';
+import { createClient } from '@/lib/supabase/server';
+import Navbar from '@/components/Navbar';
+import PostCard from '@/components/PostCard';
+import SearchBar from '@/components/SearchBar';
+import Pagination from '@/components/Pagination';
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+const POSTS_PER_PAGE = 6;
+
+interface HomePageProps {
+  searchParams: Promise<{ search?: string; page?: string }>;
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const search = params.search || '';
+  const page = parseInt(params.page || '1', 10);
+  const supabase = await createClient();
+
+  // Build query
+  let query = supabase
+    .from('posts')
+    .select(`
+      id,
+      title,
+      summary,
+      image_url,
+      created_at,
+      users!posts_author_id_fkey (name)
+    `, { count: 'exact' });
+
+  // Search filter
+  if (search) {
+    query = query.ilike('title', `%${search}%`);
+  }
+
+  // Pagination
+  const from = (page - 1) * POSTS_PER_PAGE;
+  const to = from + POSTS_PER_PAGE - 1;
+
+  const { data: posts, count, error } = await query
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  const totalPages = Math.ceil((count || 0) / POSTS_PER_PAGE);
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+    <>
+      <Navbar />
+      <main className="page-wrapper">
+        <div className="container">
+          <div className="page-header animate-fade-in-up">
+            <h1 className="page-title">Discover Stories</h1>
+            <p className="page-subtitle">
+              Explore insightful blog posts with AI-powered summaries
+            </p>
+          </div>
+
+          <Suspense fallback={<div />}>
+            <SearchBar />
+          </Suspense>
+
+          {error && (
+            <div className="alert alert-error">
+              Failed to load posts. Please try again later.
+            </div>
+          )}
+
+          {posts && posts.length > 0 ? (
+            <>
+              <div className="post-grid">
+                {posts.map((post: Record<string, unknown>) => {
+                  const users = post.users as { name: string } | null;
+                  return (
+                    <PostCard
+                      key={post.id as string}
+                      id={post.id as string}
+                      title={post.title as string}
+                      summary={post.summary as string | null}
+                      image_url={post.image_url as string | null}
+                      author_name={users?.name || 'Unknown'}
+                      created_at={post.created_at as string}
+                    />
+                  );
+                })}
+              </div>
+
+              <Suspense fallback={<div />}>
+                <Pagination currentPage={page} totalPages={totalPages} />
+              </Suspense>
+            </>
+          ) : (
+            <div className="empty-state animate-fade-in">
+              <div className="empty-state-icon">📝</div>
+              <p className="empty-state-text">
+                {search
+                  ? `No posts found for "${search}"`
+                  : 'No posts yet. Be the first to write one!'}
+              </p>
+            </div>
+          )}
         </div>
       </main>
-    </div>
+    </>
   );
 }
