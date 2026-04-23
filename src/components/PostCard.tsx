@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface PostCardProps {
   id: string;
@@ -17,28 +18,19 @@ export default function PostCard({ id, title, summary, image_url, author_name, c
   });
 
   return (
-    <Link href={`/posts/${id}`} style={{ textDecoration: 'none' }}>
+    <Link href={`/posts/${id}`} className="post-card-link">
       <article className="card animate-fade-in-up" id={`post-card-${id}`}>
         {image_url && (
-          <img
+          <Image
             src={image_url}
             alt={title}
             className="card-image"
-            loading="lazy"
+            width={400}
+            height={200}
           />
         )}
         {!image_url && (
-          <div
-            className="card-image"
-            style={{
-              background: 'linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '2.5rem',
-              opacity: 0.3,
-            }}
-          >
+          <div className="card-image card-image-placeholder">
             ✍️
           </div>
         )}

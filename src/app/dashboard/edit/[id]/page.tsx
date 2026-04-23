@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Navbar from '@/components/Navbar';
 
 interface EditPostPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default function EditPostPage({ params }: EditPostPageProps) {
-  const { id } = use(params);
+  const { id } = params;
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -21,7 +22,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     async function loadPost() {
@@ -62,7 +63,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     }
 
     loadPost();
-  }, [id]);
+  }, [id, router, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,10 +138,10 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     <>
       <Navbar />
       <main className="page-wrapper">
-        <div className="container" style={{ maxWidth: '700px' }}>
+        <div className="container dashboard-edit-container">
           <div className="animate-fade-in-up">
             <h1 className="page-title" id="edit-post-title">Edit Post</h1>
-            <p className="page-subtitle" style={{ marginBottom: 'var(--space-xl)' }}>
+            <p className="page-subtitle dashboard-edit-subtitle">
               Update your blog post content
             </p>
 
@@ -170,18 +171,14 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                   onChange={(e) => setImageUrl(e.target.value)}
                 />
                 {imageUrl && (
-                  <div style={{ marginTop: 'var(--space-sm)' }}>
-                    <img
+                  <div className="image-preview-wrapper">
+                    <Image
                       src={imageUrl}
                       alt="Preview"
-                      style={{
-                        maxHeight: '200px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border-color)',
-                      }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
+                      className="image-preview"
+                      width={700}
+                      height={200}
+                      onError={() => setImageUrl('')}
                     />
                   </div>
                 )}
@@ -191,11 +188,10 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                 <label className="form-label" htmlFor="post-body">Body Content</label>
                 <textarea
                   id="post-body"
-                  className="form-textarea"
+                  className="form-textarea form-textarea-large"
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   required
-                  style={{ minHeight: '300px' }}
                 />
               </div>
 
@@ -207,10 +203,9 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                   </div>
                   <button
                     type="button"
-                    className="btn btn-secondary btn-sm"
+                    className="btn btn-secondary btn-sm button-margin-top"
                     onClick={handleRegenerateSummary}
                     disabled={regenerating}
-                    style={{ marginTop: 'var(--space-sm)' }}
                     id="btn-regenerate-summary"
                   >
                     {regenerating ? (
@@ -222,7 +217,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
+              <div className="form-action-row">
                 <button
                   type="submit"
                   className="btn btn-primary"

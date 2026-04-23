@@ -1,8 +1,18 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+interface MockFetchOptions {
+  [key: string]: string | number;
+}
 
 // Helper for Mock DB calls
-async function mockFetch(table: string, method: string = 'GET', body?: any, filters?: any) {
+async function mockFetch(
+  table: string,
+  method: string = 'GET',
+  body?: unknown,
+  filters?: MockFetchOptions
+) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   let url = `${baseUrl}/api/mock-db?table=${table}`;
   if (filters) {
@@ -12,7 +22,12 @@ async function mockFetch(table: string, method: string = 'GET', body?: any, filt
   const res = await fetch(url, {
     method: method === 'GET' ? 'GET' : 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: method !== 'GET' ? JSON.stringify({ table, item: body, id: body?.id, method }) : undefined,
+    body: method !== 'GET' ? JSON.stringify({ 
+      table, 
+      item: body, 
+      id: (body as Record<string, unknown> | undefined)?.id, 
+      method 
+    }) : undefined,
     cache: 'no-store'
   });
   return res.json();
@@ -34,8 +49,9 @@ export async function createClient() {
         signOut: async () => ({ error: null }),
       },
       from: (table: string) => ({
-        select: (query: string, options: any) => ({
-          eq: (key: string, val: any) => ({
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        select: (_query: string, _options?: Record<string, unknown>) => ({
+          eq: (key: string, val: string | number) => ({
             single: async () => {
               const { data } = await mockFetch(table, 'GET', null, { filterKey: key, filterVal: val });
               return { data: data[0], error: null };
@@ -44,7 +60,7 @@ export async function createClient() {
               range: async () => mockFetch(table, 'GET', null, { filterKey: key, filterVal: val })
             })
           }),
-          ilike: (key: string, val: any) => ({
+          ilike: (key: string, val: string) => ({
             order: () => ({
               range: async () => mockFetch(table, 'GET', null, { search: val.replace(/%/g, '') })
             })
@@ -57,23 +73,23 @@ export async function createClient() {
             return { data: data[0], error: null };
           }
         }),
-        insert: (item: any) => ({
+        insert: (item: unknown) => ({
           select: () => ({
             single: async () => mockFetch(table, 'POST', item)
           })
         }),
-        update: (item: any) => ({
-          eq: async (key: string, val: any) => mockFetch(table, 'PUT', { id: val, ...item })
+        update: (item: unknown) => ({
+          eq: async (key: string, val: string | number) => mockFetch(table, 'PUT', { id: val, ...(item as Record<string, unknown>) })
         }),
         delete: () => ({
-          eq: async (key: string, val: any) => {
+          eq: async (key: string, val: string | number) => {
              const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
              await fetch(`${baseUrl}/api/mock-db?table=${table}&id=${val}`, { method: 'DELETE' });
              return { error: null };
           }
         })
       })
-    } as any;
+    } as unknown as SupabaseClient;
   }
 
   const cookieStore = await cookies();

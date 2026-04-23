@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+interface DBItem {
+  id?: string;
+  [key: string]: unknown;
+}
+
 // In-memory fallback storage for local dev (no persistence)
-const memoryDB: { [key: string]: any[] } = {};
+const memoryDB: { [key: string]: DBItem[] } = {};
 
 async function getSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -52,15 +57,17 @@ export async function GET(request: NextRequest) {
   const filterKey = searchParams.get('filterKey');
   const filterVal = searchParams.get('filterVal');
   if (filterKey && filterVal) {
-    data = data.filter((item: any) => item[filterKey] === filterVal);
+    data = data.filter((item: DBItem) => item[filterKey] === filterVal);
   }
 
   const search = searchParams.get('search');
   if (search) {
-    data = data.filter((item: any) => 
-      item.title?.toLowerCase().includes(search.toLowerCase()) ||
-      item.body?.toLowerCase().includes(search.toLowerCase())
-    );
+    data = data.filter((item: DBItem) => {
+      const title = typeof item.title === 'string' ? item.title : '';
+      const body = typeof item.body === 'string' ? item.body : '';
+      return title.toLowerCase().includes(search.toLowerCase()) ||
+             body.toLowerCase().includes(search.toLowerCase());
+    });
   }
 
   return NextResponse.json({ data, count: data.length });
@@ -120,7 +127,7 @@ export async function PUT(request: NextRequest) {
 
   // Fallback to memory
   if (memoryDB[table]) {
-    memoryDB[table] = memoryDB[table].map((i: any) => 
+    memoryDB[table] = memoryDB[table].map((i: DBItem) => 
       i.id === id ? { ...i, ...item, updated_at: new Date().toISOString() } : i
     );
   }
@@ -149,7 +156,7 @@ export async function DELETE(request: NextRequest) {
 
   // Fallback to memory
   if (memoryDB[table]) {
-    memoryDB[table] = memoryDB[table].filter((i: any) => i.id !== id);
+    memoryDB[table] = memoryDB[table].filter((i: DBItem) => i.id !== id);
   }
 
   return NextResponse.json({ success: true });

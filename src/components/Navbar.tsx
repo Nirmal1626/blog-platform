@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 interface UserProfile {
   id: string;
@@ -33,7 +34,7 @@ export default function Navbar() {
     }
     getUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const { data: profile } = await supabase
           .from('users')
@@ -46,8 +47,8 @@ export default function Navbar() {
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => subscription?.unsubscribe();
+  }, [supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -63,7 +64,7 @@ export default function Navbar() {
           BlogVerse
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="navbar-controls">
           <ul className="navbar-links">
             <li>
               <Link href="/" id="nav-home">Home</Link>
@@ -80,7 +81,7 @@ export default function Navbar() {
           ) : user ? (
             <div className="navbar-user">
               <span className="navbar-role">{user.role}</span>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              <span className="navbar-user-info">
                 {user.name}
               </span>
               <button
@@ -92,7 +93,7 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="navbar-auth-links">
               <Link href="/login" className="btn btn-secondary btn-sm" id="btn-login">
                 Sign In
               </Link>

@@ -45,7 +45,7 @@ export default function Pagination({ currentPage, totalPages }: PaginationProps)
       {start > 1 && (
         <>
           <button className="pagination-btn" onClick={() => goToPage(1)}>1</button>
-          {start > 2 && <span style={{ color: 'var(--text-muted)' }}>...</span>}
+          {start > 2 && <span className="pagination-ellipsis">...</span>}
         </>
       )}
 
@@ -62,7 +62,7 @@ export default function Pagination({ currentPage, totalPages }: PaginationProps)
 
       {end < totalPages && (
         <>
-          {end < totalPages - 1 && <span style={{ color: 'var(--text-muted)' }}>...</span>}
+          {end < totalPages - 1 && <span className="pagination-ellipsis">...</span>}
           <button className="pagination-btn" onClick={() => goToPage(totalPages)}>
             {totalPages}
           </button>

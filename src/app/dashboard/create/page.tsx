@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Navbar from '@/components/Navbar';
@@ -14,7 +15,7 @@ export default function CreatePostPage() {
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   // Check auth
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function CreatePostPage() {
       }
     }
     check();
-  }, []);
+  }, [router, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,16 +111,16 @@ export default function CreatePostPage() {
     <>
       <Navbar />
       <main className="page-wrapper">
-        <div className="container" style={{ maxWidth: '700px' }}>
+        <div className="container dashboard-create-container">
           <div className="animate-fade-in-up">
             <h1 className="page-title" id="create-post-title">Create New Post</h1>
-            <p className="page-subtitle" style={{ marginBottom: 'var(--space-xl)' }}>
+            <p className="page-subtitle dashboard-create-subtitle">
               Write your blog post. An AI summary will be automatically generated.
             </p>
 
             {error && <div className="alert alert-error">{error}</div>}
             {status && !error && (
-              <div className="alert alert-success" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="alert alert-success alert-status-row">
                 {(loading || summaryLoading) && <div className="spinner" />}
                 {status}
               </div>
@@ -150,18 +151,14 @@ export default function CreatePostPage() {
                   onChange={(e) => setImageUrl(e.target.value)}
                 />
                 {imageUrl && (
-                  <div style={{ marginTop: 'var(--space-sm)' }}>
-                    <img
+                  <div className="image-preview-wrapper">
+                    <Image
                       src={imageUrl}
                       alt="Preview"
-                      style={{
-                        maxHeight: '200px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border-color)',
-                      }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
+                      className="image-preview"
+                      width={700}
+                      height={200}
+                      onError={() => setImageUrl('')}
                     />
                   </div>
                 )}
@@ -171,16 +168,15 @@ export default function CreatePostPage() {
                 <label className="form-label" htmlFor="post-body">Body Content</label>
                 <textarea
                   id="post-body"
-                  className="form-textarea"
+                  className="form-textarea form-textarea-large"
                   placeholder="Write your blog post content here..."
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   required
-                  style={{ minHeight: '300px' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
+              <div className="form-action-row">
                 <button
                   type="submit"
                   className="btn btn-primary"

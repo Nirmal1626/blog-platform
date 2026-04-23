@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 interface Comment {
@@ -27,25 +27,8 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   const [currentUser, setCurrentUser] = useState<{ id: string; role: string } | null>(null);
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchComments();
-    checkUser();
-  }, []);
-
-  async function checkUser() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('users')
-        .select('id, role')
-        .eq('id', user.id)
-        .single();
-      setCurrentUser(profile);
-    }
-  }
-
-  async function fetchComments() {
-    const { data, error } = await supabase
+  const fetchComments = useCallback(async () => {
+    const { data } = await supabase
       .from('comments')
       .select(`
         id,
@@ -61,7 +44,28 @@ export default function CommentSection({ postId }: CommentSectionProps) {
       setComments(data as unknown as Comment[]);
     }
     setLoading(false);
-  }
+  }, [postId, supabase]);
+
+  const checkUser = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('id, role')
+        .eq('id', user.id)
+        .single();
+      setCurrentUser(profile);
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    const initializeData = async () => {
+      await fetchComments();
+      await checkUser();
+    };
+    
+    initializeData().catch(console.error);
+  }, [fetchComments, checkUser]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -119,22 +123,22 @@ export default function CommentSection({ postId }: CommentSectionProps) {
       <h3 className="comments-title">Comments ({comments.length})</h3>
 
       {comments.length === 0 ? (
-        <div className="empty-state" style={{ padding: 'var(--space-xl)' }}>
-          <p style={{ color: 'var(--text-muted)' }}>No comments yet. Be the first to share your thoughts!</p>
+        <div className="empty-state">
+          <p>No comments yet. Be the first to share your thoughts!</p>
         </div>
       ) : (
         comments.map((comment) => (
           <div key={comment.id} className="comment-item animate-fade-in" id={`comment-${comment.id}`}>
             <div className="comment-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="comment-header-author">
                 <span className="comment-author">{comment.users?.name || 'Unknown'}</span>
                 {comment.users?.role && (
-                  <span className="navbar-role" style={{ fontSize: '0.6rem' }}>
+                  <span className="navbar-role comment-role">
                     {comment.users.role}
                   </span>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="comment-header-actions">
                 <span className="comment-date">
                   {new Date(comment.created_at).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -144,9 +148,8 @@ export default function CommentSection({ postId }: CommentSectionProps) {
                 </span>
                 {currentUser && (currentUser.id === comment.user_id || currentUser.role === 'admin') && (
                   <button
-                    className="btn btn-danger btn-sm"
+                    className="btn btn-danger btn-sm comment-delete-btn"
                     onClick={() => handleDelete(comment.id)}
-                    style={{ padding: '2px 8px', fontSize: '0.7rem' }}
                   >
                     Delete
                   </button>
@@ -170,7 +173,6 @@ export default function CommentSection({ postId }: CommentSectionProps) {
               onChange={(e) => setNewComment(e.target.value)}
               required
               id="comment-textarea"
-              style={{ minHeight: '100px' }}
             />
           </div>
           <button
@@ -189,17 +191,8 @@ export default function CommentSection({ postId }: CommentSectionProps) {
           </button>
         </form>
       ) : (
-        <div style={{
-          textAlign: 'center',
-          padding: 'var(--space-lg)',
-          background: 'var(--bg-glass)',
-          borderRadius: 'var(--radius-md)',
-          marginTop: 'var(--space-lg)',
-          border: '1px solid var(--border-color)',
-        }}>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-sm)' }}>
-            Sign in to leave a comment
-          </p>
+        <div className="signin-container">
+          <p>Sign in to leave a comment</p>
           <a href="/login" className="btn btn-primary btn-sm">Sign In</a>
         </div>
       )}

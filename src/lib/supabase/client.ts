@@ -1,6 +1,7 @@
 import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export function createClient() {
+export function createClient(): SupabaseClient | ReturnType<typeof createBrowserClient> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -17,13 +18,16 @@ export function createClient() {
            // Clear mock session
            return { error: null };
         },
-        onAuthStateChange: (callback: any) => {
+        onAuthStateChange: (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _callback: (event: string, session: unknown) => void
+        ) => {
           return { data: { subscription: { unsubscribe: () => {} } } };
         }
       },
       from: (table: string) => ({
         select: () => ({
-          eq: (key: string, val: any) => ({
+          eq: (key: string, val: string | number) => ({
             single: async () => {
               const res = await fetch(`/api/mock-db?table=${table}&filterKey=${key}&filterVal=${val}`);
               const { data } = await res.json();
@@ -34,14 +38,15 @@ export function createClient() {
             ascending: false
           })
         }),
-        insert: (item: any) => ({
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        insert: (_item: unknown) => ({
           error: null
         }),
         delete: () => ({
           eq: async () => ({ error: null })
         })
       })
-    } as any;
+    } as unknown as SupabaseClient;
   }
 
   return createBrowserClient(supabaseUrl, supabaseKey);
