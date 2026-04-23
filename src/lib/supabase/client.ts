@@ -29,9 +29,14 @@ export function createClient(): SupabaseClient | ReturnType<typeof createBrowser
         select: () => ({
           eq: (key: string, val: string | number) => ({
             single: async () => {
-              const res = await fetch(`/api/mock-db?table=${table}&filterKey=${key}&filterVal=${val}`);
-              const { data } = await res.json();
-              return { data: data[0], error: null };
+              try {
+                const res = await fetch(`/api/mock-db?table=${table}&filterKey=${key}&filterVal=${val}`);
+                const { data } = await res.json();
+                return { data: data[0], error: null };
+              } catch (error) {
+                console.warn('Mock API not available, returning null. This is expected during static export.');
+                return { data: null, error: null };
+              }
             }
           }),
           order: () => ({

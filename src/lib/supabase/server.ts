@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import dbData from '../../../db.json';
 
 interface MockFetchOptions {
   [key: string]: string | number;
@@ -13,24 +14,52 @@ async function mockFetch(
   body?: unknown,
   filters?: MockFetchOptions
 ) {
+  // If we are in build phase or local dev without a running server, use db.json fallback
+  const isBuild = process.env.NEXT_PHASE === 'phase-production-build' || process.env.NODE_ENV === 'production';
+  
+  if (isBuild || method === 'GET') {
+    const data = (dbData as Record<string, any[]>)[table] || [];
+    let filteredData = [...data];
+
+    if (filters) {
+      if (filters.filterKey && filters.filterVal) {
+        filteredData = filteredData.filter(item => item[filters.filterKey] === filters.filterVal);
+      }
+      if (filters.search) {
+        const search = String(filters.search).toLowerCase();
+        filteredData = filteredData.filter(item => 
+          (item.title?.toLowerCase().includes(search)) || 
+          (item.body?.toLowerCase().includes(search))
+        );
+      }
+    }
+
+    return { data: filteredData, count: filteredData.length };
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   let url = `${baseUrl}/api/mock-db?table=${table}`;
   if (filters) {
     Object.keys(filters).forEach(key => url += `&${key}=${filters[key]}`);
   }
 
-  const res = await fetch(url, {
-    method: method === 'GET' ? 'GET' : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: method !== 'GET' ? JSON.stringify({ 
-      table, 
-      item: body, 
-      id: (body as Record<string, unknown> | undefined)?.id, 
-      method 
-    }) : undefined,
-    cache: 'no-store'
-  });
-  return res.json();
+  try {
+    const res = await fetch(url, {
+      method: method === 'GET' ? 'GET' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: method !== 'GET' ? JSON.stringify({ 
+        table, 
+        item: body, 
+        id: (body as Record<string, unknown> | undefined)?.id, 
+        method 
+      }) : undefined,
+      cache: 'no-store'
+    });
+    return res.json();
+  } catch (error) {
+    console.error('Mock fetch failed, using local data:', error);
+    return { data: (dbData as Record<string, any[]>)[table] || [], count: 0 };
+  }
 }
 
 export async function createClient() {
